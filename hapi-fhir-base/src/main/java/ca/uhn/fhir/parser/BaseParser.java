@@ -755,7 +755,7 @@ public abstract class BaseParser implements IParser {
 		return retVal;
 	}
 	
-	protected <T extends IBaseResource> T  normalizeBundleResourceIds(T theResource) {
+	protected <T extends IBaseResource> T normalizeBundleResourceIds(T theResource) {
 		RuntimeResourceDefinition def = myContext.getResourceDefinition(theResource);
 		if ("Bundle".equals(def.getName())) {
 

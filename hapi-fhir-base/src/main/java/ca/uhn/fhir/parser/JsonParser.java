@@ -44,7 +44,6 @@ import ca.uhn.fhir.parser.json.JsonLikeValue.ValueType;
 import ca.uhn.fhir.parser.json.JsonLikeWriter;
 import ca.uhn.fhir.parser.json.jackson.JacksonStructure;
 import ca.uhn.fhir.rest.api.EncodingEnum;
-import ca.uhn.fhir.util.BundleUtil;
 import ca.uhn.fhir.util.ElementUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
