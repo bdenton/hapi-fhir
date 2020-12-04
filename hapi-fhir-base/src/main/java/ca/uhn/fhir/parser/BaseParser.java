@@ -749,11 +749,18 @@ public abstract class BaseParser implements IParser {
 		// Actually do the parse
 		T retVal = doParseResource(theResourceType, theReader);
 
-		RuntimeResourceDefinition def = myContext.getResourceDefinition(retVal);
+		// adjust/normalize Bundle content resource Ids
+		retVal = normalizeBundleResourceIds(retVal);
+		
+		return retVal;
+	}
+	
+	protected <T extends IBaseResource> T  normalizeBundleResourceIds(T theResource) {
+		RuntimeResourceDefinition def = myContext.getResourceDefinition(theResource);
 		if ("Bundle".equals(def.getName())) {
 
 			if (isOverrideResourceIdWithBundleEntryFullUrl()) {
-				BundleUtil.processEntries(myContext, (IBaseBundle) retVal, t -> {
+				BundleUtil.processEntries(myContext, (IBaseBundle) theResource, t -> {
 					String fullUrl = t.getFullUrl();
 					if (fullUrl != null) {
 						IBaseResource resource = t.getResource();
@@ -788,7 +795,7 @@ public abstract class BaseParser implements IParser {
 
 		}
 
-		return retVal;
+		return theResource;
 	}
 
 	@SuppressWarnings("cast")

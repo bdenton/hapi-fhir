@@ -44,6 +44,7 @@ import ca.uhn.fhir.parser.json.JsonLikeValue.ValueType;
 import ca.uhn.fhir.parser.json.JsonLikeWriter;
 import ca.uhn.fhir.parser.json.jackson.JacksonStructure;
 import ca.uhn.fhir.rest.api.EncodingEnum;
+import ca.uhn.fhir.util.BundleUtil;
 import ca.uhn.fhir.util.ElementUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -1240,44 +1241,8 @@ public class JsonParser extends BaseParser implements IJsonLikeParser {
 		// Actually do the parse
 		T retVal = doParseResource(theResourceType, theJsonLikeStructure);
 
-		RuntimeResourceDefinition def = myContext.getResourceDefinition(retVal);
-		if ("Bundle".equals(def.getName())) {
-
-			BaseRuntimeChildDefinition entryChild = def.getChildByName("entry");
-			BaseRuntimeElementCompositeDefinition<?> entryDef = (BaseRuntimeElementCompositeDefinition<?>) entryChild.getChildByName("entry");
-			List<IBase> entries = entryChild.getAccessor().getValues(retVal);
-			if (entries != null) {
-				for (IBase nextEntry : entries) {
-
-					/**
-					 * If Bundle.entry.fullUrl is populated, set the resource ID to that
-					 */
-					// TODO: should emit a warning and maybe notify the error handler if the resource ID doesn't match the
-					// fullUrl idPart
-					BaseRuntimeChildDefinition fullUrlChild = entryDef.getChildByName("fullUrl");
-					if (fullUrlChild == null) {
-						continue; // TODO: remove this once the data model in tinder plugin catches up to 1.2
-					}
-					List<IBase> fullUrl = fullUrlChild.getAccessor().getValues(nextEntry);
-					if (fullUrl != null && !fullUrl.isEmpty()) {
-						IPrimitiveType<?> value = (IPrimitiveType<?>) fullUrl.get(0);
-						if (value.isEmpty() == false) {
-							List<IBase> entryResources = entryDef.getChildByName("resource").getAccessor().getValues(nextEntry);
-							if (entryResources != null && entryResources.size() > 0) {
-								IBaseResource res = (IBaseResource) entryResources.get(0);
-								String versionId = res.getIdElement().getVersionIdPart();
-								res.setId(value.getValueAsString());
-								if (isNotBlank(versionId) && res.getIdElement().hasVersionIdPart() == false) {
-									res.setId(res.getIdElement().withVersion(versionId));
-								}
-							}
-						}
-					}
-
-				}
-			}
-
-		}
+		// adjust/normalize Bundle content resource Ids
+		retVal = normalizeBundleResourceIds(retVal);
 
 		return retVal;
 	}
